@@ -10,12 +10,25 @@ async function createBooking(req, res) {
     const response = await BookingService.createBooking({
       flightId: req.body.flightId,
       userId: req.body.userId,
-      noofSeats: req.body.noofSeats,
+      noOfSeats: req.body.noOfSeats,
     });
     SuccessResponse.data = response;
     return res.status(StatusCodes.OK).json(SuccessResponse);
   } catch (error) {
-    ErrorResponse.error = error;
+    console.error("Error creating booking:", error);
+    ErrorResponse.error = {
+      message: error.message,
+      stack: error.stack,
+      config: error.config,
+      response: error.response
+        ? {
+            status: error.response.status,
+            statusText: error.response.statusText,
+            headers: error.response.headers,
+            data: error.response.data,
+          }
+        : undefined,
+    };
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(ErrorResponse);
   }
 }

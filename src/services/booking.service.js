@@ -2,7 +2,7 @@ const axios = require("axios");
 const { StatusCodes } = require("http-status-codes");
 
 const { BookingRepository } = require("../repositories");
-const config = require("./config/server.config.js");
+const config = require("../config/server.config");
 const db = require("../models");
 const AppError = require("../errors/App.error");
 const { Enums } = require("../utils");
@@ -17,23 +17,24 @@ async function createBooking(data) {
       `${config.FLIGHT_SERVICE}/api/v1/flights/${data.flightId}`
     );
     const flightData = flight.data.data;
-    if (data.noofSeats > flightData.totalSeats) {
+    if (data.noOfSeats > flightData.totalSeats) {
       throw new AppError("Not enough seats available", StatusCodes.BAD_REQUEST);
     }
-    const totalBillingAmount = data.noofSeats * flightData.price;
+    const totalBillingAmount = data.noOfSeats * flightData.price;
     const bookingPayload = { ...data, totalCost: totalBillingAmount };
     const booking = await bookingRepository.create(bookingPayload, transaction);
 
     await axios.patch(
       `${config.FLIGHT_SERVICE}/api/v1/flights/${data.flightId}/seats`,
       {
-        seats: data.noofSeats,
+        seats: data.noOfSeats,
       }
     );
 
     await transaction.commit();
     return booking;
   } catch (error) {
+    console.log(error.response.data.error);
     await transaction.rollback();
     throw error;
   }
@@ -64,7 +65,7 @@ async function makePayment(data) {
     }
     if (bookingDetails.userId != data.userId) {
       throw new AppError(
-        "The user corresponding to the booking doesnt match",
+        "The user corresponding to the booking doesn't match",
         StatusCodes.BAD_REQUEST
       );
     }
