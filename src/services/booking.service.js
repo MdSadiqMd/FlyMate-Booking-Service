@@ -34,7 +34,6 @@ async function createBooking(data) {
     await transaction.commit();
     return booking;
   } catch (error) {
-    console.log(error.response.data.error);
     await transaction.rollback();
     throw error;
   }
@@ -50,11 +49,9 @@ async function makePayment(data) {
     if (bookingDetails.status == CANCELLED) {
       throw new AppError("The booking has expired", StatusCodes.BAD_REQUEST);
     }
-    console.log(bookingDetails);
     const bookingTime = new Date(bookingDetails.createdAt);
     const currentTime = new Date();
     if (currentTime - bookingTime > 300000) {
-      await cancelBooking(data.bookingId);
       throw new AppError("The booking has expired", StatusCodes.BAD_REQUEST);
     }
     if (bookingDetails.totalCost != data.totalCost) {
