@@ -26,6 +26,47 @@ class BookingRepository extends CrudRepository {
     }
     return response;
   }
+
+  async update(id, data, transaction) {
+    const response = await Booking.update(
+      data,
+      {
+        where: {
+          id: id,
+        },
+      },
+      { transaction: transaction }
+    );
+    return response;
+  }
+
+  async cancelOldBookings(timestamp) {
+    const response = await Booking.update(
+      { status: CANCELLED },
+      {
+        where: {
+          [Op.and]: [
+            {
+              createdAt: {
+                [Op.lt]: timestamp,
+              },
+            },
+            {
+              status: {
+                [Op.ne]: BOOKED,
+              },
+            },
+            {
+              status: {
+                [Op.ne]: CANCELLED,
+              },
+            },
+          ],
+        },
+      }
+    );
+    return response;
+  }
 }
 
 module.exports = BookingRepository;
